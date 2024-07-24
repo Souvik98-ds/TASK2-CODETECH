@@ -1,0 +1,174 @@
+import os
+import json
+from datetime import datetime
+
+# Helper functions for generating unique IDs and timestamps
+def generate_id():
+    return int(datetime.now().timestamp() * 1000)
+
+def current_time():
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+# In-memory storage for demonstration
+users = {}
+friendships = {}
+messages = []
+notifications = []
+
+class User:
+    def __init__(self, username, email, bio):
+        self.id = generate_id()
+        self.username = username
+        self.email = email
+        self.bio = bio
+        self.friends = []
+
+class Message:
+    def __init__(self, sender_id, recipient_id, content):
+        self.id = generate_id()
+        self.sender_id = sender_id
+        self.recipient_id = recipient_id
+        self.content = content
+        self.timestamp = current_time()
+
+class Notification:
+    def __init__(self, user_id, content):
+        self.id = generate_id()
+        self.user_id = user_id
+        self.content = content
+        self.timestamp = current_time()
+
+def create_user(username, email, bio):
+    if username in users:
+        print("Username already exists.")
+        return None
+    user = User(username, email, bio)
+    users[username] = user
+    print(f"User {username} created successfully.")
+    return user
+
+def send_friend_request(sender_username, recipient_username):
+    sender = users.get(sender_username)
+    recipient = users.get(recipient_username)
+    
+    if not sender or not recipient:
+        print("User not found.")
+        return
+    
+    if recipient_username in sender.friends:
+        print("Already friends.")
+        return
+    
+    if sender_username in recipient.friends:
+        print("Friend request already sent.")
+        return
+
+    friendships[(sender_username, recipient_username)] = 'pending'
+    notification = Notification(recipient.id, f"{sender.username} sent you a friend request.")
+    notifications.append(notification)
+    print(f"Friend request sent to {recipient.username}.")
+
+def accept_friend_request(sender_username, recipient_username):
+    if friendships.get((sender_username, recipient_username)) == 'pending':
+        sender = users[sender_username]
+        recipient = users[recipient_username]
+        sender.friends.append(recipient)
+        recipient.friends.append(sender)
+        friendships.pop((sender_username, recipient_username))
+        print(f"{sender.username} and {recipient.username} are now friends.")
+    else:
+        print("No pending friend request.")
+
+def send_message(sender_username, recipient_username, content):
+    sender = users.get(sender_username)
+    recipient = users.get(recipient_username)
+    
+    if not sender or not recipient:
+        print("User not found.")
+        return
+    
+    message = Message(sender.id, recipient.id, content)
+    messages.append(message)
+    notification = Notification(recipient.id, f"New message from {sender.username}.")
+    notifications.append(notification)
+    print(f"Message sent to {recipient.username}.")
+
+def display_messages(username):
+    user = users.get(username)
+    if not user:
+        print("User not found.")
+        return
+    
+    user_messages = [msg for msg in messages if msg.recipient_id == user.id]
+    for msg in user_messages:
+        sender = [u for u in users.values() if u.id == msg.sender_id][0]
+        print(f"From {sender.username} at {msg.timestamp}: {msg.content}")
+
+def display_notifications(username):
+    user = users.get(username)
+    if not user:
+        print("User not found.")
+        return
+    
+    user_notifications = [notif for notif in notifications if notif.user_id == user.id]
+    for notif in user_notifications:
+        print(f"At {notif.timestamp}: {notif.content}")
+
+def display_user(user):
+    print(f"Username: {user.username}")
+    print(f"Email: {user.email}")
+    print(f"Bio: {user.bio}")
+    print(f"Friends: {', '.join(friend.username for friend in user.friends)}")
+
+def main():
+    while True:
+        print("\nWelcome to the Social Media Platform")
+        print("1. Create User")
+        print("2. Send Friend Request")
+        print("3. Accept Friend Request")
+        print("4. Send Message")
+        print("5. View User Info")
+        print("6. View Messages")
+        print("7. View Notifications")
+        print("8. Exit")
+
+        choice = input("Enter your choice: ")
+        
+        if choice == '1':
+            username = input("Enter username: ")
+            email = input("Enter email: ")
+            bio = input("Enter bio: ")
+            create_user(username, email, bio)
+        elif choice == '2':
+            sender_username = input("Enter your username: ")
+            recipient_username = input("Enter friend's username: ")
+            send_friend_request(sender_username, recipient_username)
+        elif choice == '3':
+            sender_username = input("Enter your username: ")
+            recipient_username = input("Enter friend's username: ")
+            accept_friend_request(sender_username, recipient_username)
+        elif choice == '4':
+            sender_username = input("Enter your username: ")
+            recipient_username = input("Enter friend's username: ")
+            content = input("Enter message content: ")
+            send_message(sender_username, recipient_username, content)
+        elif choice == '5':
+            username = input("Enter username: ")
+            user = users.get(username)
+            if user:
+                display_user(user)
+            else:
+                print("User not found.")
+        elif choice == '6':
+            username = input("Enter your username: ")
+            display_messages(username)
+        elif choice == '7':
+            username = input("Enter your username: ")
+            display_notifications(username)
+        elif choice == '8':
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
