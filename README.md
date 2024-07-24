@@ -1,4 +1,9 @@
-
+NAME- SOUVIK GHOSH
+ID- CT08DS3779
+COMPANY- CODTECH IT SOLUTIONS PVT.LTD
+DOMAIN- PYTHON
+DURATION - 4WEEKS
+__________________
 
 SOCIAL MEDIA PLATFORM:-
 A command-line based social media platform implemented in Python. This project provides basic functionalities of a social networking site including user profiles, friend connections, messaging, notifications, and user interactions.
